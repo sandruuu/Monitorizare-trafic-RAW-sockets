@@ -12,6 +12,20 @@
 
 #define SIZE 65536
 
+void print(struct ethhdr* eth, struct iphdr* ip){
+    
+    printf("Source MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
+    eth->h_source[0], eth->h_source[1], eth->h_source[2],
+    eth->h_source[3], eth->h_source[4], eth->h_source[5]);
+    printf("Destination MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
+    eth->h_dest[0], eth->h_dest[1], eth->h_dest[2],
+    eth->h_dest[3], eth->h_dest[4], eth->h_dest[5]);
+    
+    printf("Source IP: %s\n", inet_ntoa(*(struct in_addr *)&ip->saddr));
+    printf("Destination IP: %s\n", inet_ntoa(*(struct in_addr *)&ip->daddr));
+    
+}
+
 void process_packet(unsigned char* buffer, int size){
     struct ethhdr* eth= (struct ethhdr*)buffer;
 
@@ -21,33 +35,71 @@ void process_packet(unsigned char* buffer, int size){
         if (ip->protocol==IPPROTO_TCP){
             struct tcphdr* tcp= (struct tcphdr*)(buffer + sizeof(struct ethhdr) + sizeof(struct iphdr));
             printf("-----TCP packet-----\n\n");
+            print(eth,ip);
+
         }
 
         if (ip->protocol==IPPROTO_UDP){
             struct udphdr* udp= (struct udphdr*)(buffer+ sizeof(struct ethhdr)+sizeof(struct iphdr));
             printf("-----UDP packet-----\n\n");
+            print(eth,ip);
+
         }
 
         if (ip->protocol==IPPROTO_ICMP){
             struct icmphdr* icmp= (struct icmphdr*)(buffer+ sizeof(struct ethhdr)+sizeof(struct iphdr));
             printf("-----ICMP packet-----\n\n");
+            print(eth,ip);
         }
-        printf("Source MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
-        eth->h_source[0], eth->h_source[1], eth->h_source[2],
-        eth->h_source[3], eth->h_source[4], eth->h_source[5]);
-        printf("Destination MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
-        eth->h_dest[0], eth->h_dest[1], eth->h_dest[2],
-        eth->h_dest[3], eth->h_dest[4], eth->h_dest[5]);
-        printf("Source IP: %s\n", inet_ntoa(*(struct in_addr *)&ip->saddr));
-        printf("Destination IP: %s\n", inet_ntoa(*(struct in_addr *)&ip->daddr));
+    }
+}
+
+void protocol_filter(char* protocol,int* used_domain, int* used_protocol){
+    
+    if(strcmp(protocol,"tcp")==0){
+        printf("TCP protocol\n\n");
+        *used_domain=AF_PACKET;
+        *used_protocol=6;
+    }
+    
+    if(strcmp(protocol,"udp")==0){
+        printf("UDP protocol\n\n");
+        *used_domain=AF_INET;
+        *used_protocol=17;
+    }
+    
+    if(strcmp(protocol,"icmp")==0){
+        printf("ICMP protocol\n\n");
+        *used_domain=AF_INET;
+        *used_protocol=1;
+    }
+    
+    if(strcmp(protocol,"arp")==0){
+        printf("ARP protocol\n\n");
+        *used_domain=AF_PACKET;
+        *used_protocol= htons(ETH_P_ARP);
+    }
+    
+    if(strcmp(protocol,"ip")==0){
+        printf("IP protocol\n\n");
+        *used_domain=AF_PACKET;
+        *used_protocol=htons(ETH_P_IP);
     }
 }
 
 int main(int argc, char* argv[]){
+    int DOMAIN= AF_PACKET;
+    int PROTOCOL= htons(ETH_P_ALL);
 
-    int protocol= htons(ETH_P_ALL);
+    for(int k=0; k<argc; ++k){
+        if(strcmp(argv[k],"-p")==0){
+            if(k+1<argc){
+                protocol_filter(argv[k+1],&DOMAIN,&PROTOCOL);
+            }
+        }
+    }
 
-    int fd= socket(AF_PACKET,SOCK_RAW,protocol);
+    int fd= socket(DOMAIN,SOCK_RAW,PROTOCOL);
     if(fd == -1){
         perror("error\n");
     }

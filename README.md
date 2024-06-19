@@ -11,4 +11,9 @@ NETWORK PACKET: Ethernet header, IP header, Transport header, Data
 sites: https://www.opensourceforu.com/2015/03/a-guide-to-using-raw-sockets/
        https://www.baeldung.com/cs/raw-sockets
 
+# 6/19/2024
+Afisare informatii.
+Filtrarea pachetelor in functie de protocol.
+
+sites: https://gist.github.com/miraigajettolab/a0f8d3ae1014663ef7769bd74cc9a036
 
