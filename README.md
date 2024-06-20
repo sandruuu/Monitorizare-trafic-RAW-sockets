@@ -17,3 +17,9 @@ Filtrarea pachetelor in functie de protocol.
 
 sites: https://gist.github.com/miraigajettolab/a0f8d3ae1014663ef7769bd74cc9a036
 
+# 6/20/2024
+Prelucrarea corespunzatoare a pachetelor.
+
+sites: https://stackoverflow.com/questions/30780082/sock-raw-option-in-socket-system-call
+
+
