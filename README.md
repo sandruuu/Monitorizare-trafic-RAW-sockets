@@ -22,4 +22,10 @@ Prelucrarea corespunzatoare a pachetelor.
 
 sites: https://stackoverflow.com/questions/30780082/sock-raw-option-in-socket-system-call
 
+# 6/25/2024
+Afisarea informatiilor in fisierul out.txt.
+Filtrarea informatiilor stocate in fisier prin intermediul scriptului filter.sh.
+
+Optiuni de filtrare: 
+-afisarea adreselor MAC(sursa si destinatie) si a producatorului.
 
