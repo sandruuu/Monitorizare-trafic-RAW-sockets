@@ -29,3 +29,8 @@ Filtrarea informatiilor stocate in fisier prin intermediul scriptului filter.sh.
 Optiuni de filtrare: 
 -afisarea adreselor MAC(sursa si destinatie) si a producatorului.
 
+# 6/26/2024
+Adaugare optiuni filtrare:
+-conversia adreselor IP intr-un nume de domeniu(DNS Lookup) si afisarea continutului fisierului modificat
+-afisarea adreselor IP si a numelui de domeniu
+-afisarea pachetelor in functie de protocol(TCP/UDP/ICMP/ARP)

@@ -2,7 +2,11 @@
 
 if [[ $# -ne 1 ]]
 then
-    echo "Utilizare: $0 <nume_fisier>"
+    exit 1
+fi
+
+if [[ ! -f "$1" ]]
+then
     exit 1
 fi
 
@@ -12,55 +16,116 @@ then
     wget http://standards-oui.ieee.org/oui.txt -O "$OUI_FILE"
 fi
 
-producator(){
-    local mac_prefix=$(echo "$1" | cut -d':' -f1-3 | tr '[:lower:]' '[:upper:]')
-    mac_prefix=$(echo "$mac_prefix" | sed 's/:/-/g')  
+get_vendor(){
+    local oui=$(echo "$1" | cut -d':' -f1-3 | tr '[:lower:]' '[:upper:]')
+    oui=$(echo "$oui" | sed 's/:/-/g')  
 
-    local prod=$(grep -i "^$mac_prefix" "$OUI_FILE" | awk -F'\t' '{print $3}')
+    local vendor=$(grep -i "^$oui" "$OUI_FILE" | awk -F'\t' '{print $3}')
     
-    if [[ -n "$prod" ]]
+    if [[ -n "$vendor" ]]
     then
-        echo "$prod"
+        echo "$vendor"
     else
         echo "Unknown"
     fi
 }
 
-mac_producator(){
+print_mac_vendor(){
     local -A mac_array
-
-    if [[ ! -f "$1" ]]
-    then
-        echo "Fisierul nu exista."
-        exit 0
-    fi
 
     while read -r line
     do
-        for mac in $(echo "$line" | grep -o -E '([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}')
+        for mac in $(echo "$line" | grep -oE '([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}')
         do
             if [[ -z "${mac_array[$mac]}" ]]
             then
                 mac_array[$mac]=1
-                prod=$(producator "$mac")
-                echo "$mac - $prod"
+                local vendor=$(get_vendor "$mac")
+                echo "$mac - $vendor"
             fi
         done
     done < "$1"
 }
 
-PS3="Alege o optiune din meniu: " 
-select ITEM in "Afiseaza adresa MAC si producatorul." "Afiseaza..." "Exit" 
+get_domain(){
+    local ip=$1
+    local domain_to_check=$(host "$ip" | head -n 1)
+    if echo "$domain_to_check" | grep -q "not found"
+    then
+        echo $ip
+    else
+        echo $(echo $domain_to_check | awk '{print $5}' | sed 's/\.$//')
+    fi
+}
+
+print_ip_to_domain(){
+    while IFS= read -r line
+    do
+        
+        local ip1=$(echo "$line" | awk '{print $4}')
+        local ip2=$(echo "$line" | awk '{print $8}')
+        local domain1=$(get_domain "$ip1")
+        local domain2=$(get_domain "$ip2")
+
+        local modified_line=$(echo "$line" | sed "s/$ip1/$domain1/g")
+        modified_line=$(echo "$modified_line" | sed "s/$ip2/$domain2/g")
+
+        echo "$modified_line"
+    
+    done < "$1"
+}
+
+print_ip_domain(){
+    local -A ip_array
+
+    while read -r line
+    do
+        local ip1=$(echo "$line" | awk '{print $4}')
+        local ip2=$(echo "$line" | awk '{print $8}')
+        
+        if [[ -z "${ip_array[$ip1]}" ]]
+        then
+            ip_array[$ip1]=1
+            domain=$(get_domain "$ip1")
+            echo "$ip1 $domain"
+        fi
+
+        if [[ -z "${ip_array[$ip2]}" ]]
+        then
+            ip_array[$ip2]=1
+            domain=$(get_domain "$ip2")
+            echo "$ip2 $domain"
+        fi
+    done < "$1"
+}
+
+protocol_filter(){
+    read -p "Enter the protocol name(TCP/UDP/ICMP/ARP): " protocol
+    while read -r line
+    do
+        local line_to_check=$(echo $line | grep "$protocol")
+        if [[ ! -z "$line_to_check" ]]
+        then
+            echo "$line"
+        fi
+    done < "$1"
+}
+
+
+PS3="Choose a filtering option: " 
+select ITEM in "Display MAC address and vendor." "Convert IP addresses to domain names and display the modified file." "Display IP addresses and domain names." "Display packets by protocol." "Exit." 
 do 
     case $REPLY in 
-        1) mac_producator "$1" ;; 
+        1) print_mac_vendor "$1" ;; 
         
+        2) print_ip_to_domain "$1" ;;
         
-        2)  ;;
+        3) print_ip_domain "$1" ;;
+
+        4) protocol_filter "$1" ;;
+
+        5) exit 0 ;;   
         
-        
-        3) exit 0 ;;   
-        
-        *) echo "Optiune incorecta." 
+        *) echo "Incorrect option." 
     esac
 done
