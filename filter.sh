@@ -111,9 +111,31 @@ protocol_filter(){
     done < "$1"
 }
 
+ip_filter(){
+    read -p "Enter source or dest ip: " place
+    read -p "Enter ip: " ip
+    while read -r line
+    do
+        if [[ "$place" == "source" ]]
+        then
+            echo "$line" | grep -q "$ip .*>"
+            if [[ $? -eq 0 ]]
+            then
+                echo "$line"
+            fi
+        elif [[ "$place" == "dest" ]]
+        then
+            echo "$line" | grep -q ">.* $ip"
+            if [[ $? -eq 0 ]]
+            then
+                echo "$line"
+            fi
+        fi
+    done < "$1"
+}
 
 PS3="Choose a filtering option: " 
-select ITEM in "Display MAC address and vendor." "Convert IP addresses to domain names and display the modified file." "Display IP addresses and domain names." "Display packets by protocol." "Exit." 
+select ITEM in "Display MAC address and vendor." "Convert IP addresses to domain names and display the modified file." "Display IP addresses and domain names." "Display packets by protocol." "Display packets by source/destination IP." "Exit." 
 do 
     case $REPLY in 
         1) print_mac_vendor "$1" ;; 
@@ -124,7 +146,9 @@ do
 
         4) protocol_filter "$1" ;;
 
-        5) exit 0 ;;   
+        5) ip_filter "$1";;
+
+        6) exit 0 ;;   
         
         *) echo "Incorrect option." 
     esac

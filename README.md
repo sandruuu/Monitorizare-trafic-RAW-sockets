@@ -34,3 +34,7 @@ Adaugare optiuni filtrare:
 -conversia adreselor IP intr-un nume de domeniu(DNS Lookup) si afisarea continutului fisierului modificat
 -afisarea adreselor IP si a numelui de domeniu
 -afisarea pachetelor in functie de protocol(TCP/UDP/ICMP/ARP)
+
+# 6/27/2024
+Adaugare optiuni filtrare:
+-afisarea pachetelor cu o anumita adresa IP sursa sau destinatie

@@ -162,7 +162,8 @@ void print_in_file_arp_info(struct ethhdr* eth, struct arphdr* arp, unsigned cha
                 sender_mac[3], sender_mac[4], sender_mac[5]);//source mac
         fprintf(outfile,"%u.%u.%u.%u ",
                 sender_ip[0], sender_ip[1], sender_ip[2], sender_ip[3]);//source ip
-
+        fprintf(outfile,"- ");
+        
         fprintf(outfile,"> ");
 
         fprintf(outfile,"%02x:%02x:%02x:%02x:%02x:%02x ",
@@ -170,9 +171,11 @@ void print_in_file_arp_info(struct ethhdr* eth, struct arphdr* arp, unsigned cha
                 target_mac[3], target_mac[4], target_mac[5]);//dest mac 
         fprintf(outfile,"%u.%u.%u.%u:",
                 target_ip[0], target_ip[1], target_ip[2], target_ip[3]);//dest ip
-        fprintf(outfile,"%u ", ntohs(arp->ar_op));//opcode
-        fprintf(outfile,"%u ", ntohs(arp->ar_hrd));//hardware type
-        fprintf(outfile,"%u ", ntohs(arp->ar_pro));//protocol type
+        fprintf(outfile,"- ");
+
+        fprintf(outfile,"Opcode=%u ", ntohs(arp->ar_op));//opcode
+        fprintf(outfile,"Hardware=%u ", ntohs(arp->ar_hrd));//hardware type
+        fprintf(outfile,"Protocol=%u ", ntohs(arp->ar_pro));//protocol type
         fprintf(outfile,"\n");
  }
 
@@ -330,9 +333,12 @@ int main(int argc, char* argv[]){
             timeinfo = localtime ( &rawtime );
             char time_string[9];
             strftime(time_string, sizeof(time_string), "%H:%M:%S", timeinfo);
-	        if(DOMAIN==AF_PACKET)
+	        
+            if(DOMAIN==AF_PACKET)
                 fprintf(file,"%s ",time_string);
+            
             printf("%s",asctime(timeinfo));
+            
             process_packet(DOMAIN,recv_buffer,recv_length,file);
         }
     } 
